@@ -1,0 +1,24 @@
+# implements the example DFA from http://en.wikipedia.org/wiki/Deterministic_finite_automaton
+# that parses a binary number one character at a time and accepts powers of three.
+
+[dfa]
+start = "a"
+
+[state.a]
+accept = true
+transitions = [
+  ["s:1", "b"]
+]
+
+[state.b]
+accept = false
+transitions = [
+  ["s:0", "c"],
+  ["s:1", "a"]
+]
+
+[state.c]
+accept = false
+transitions = [
+  ["s:0", "b"]
+]
