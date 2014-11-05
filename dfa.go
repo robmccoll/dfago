@@ -4,8 +4,10 @@ import (
   "fmt"
   "regexp"
   "io/ioutil"
+  "strings"
 
   "github.com/BurntSushi/toml"
+  "github.com/aarzilli/golua/lua"
 )
 
 type DFAConfig struct {
@@ -21,6 +23,7 @@ type DFAState struct {
 }
 
 type DFA struct {
+  L      *lua.State
   Config DFAConfig           `toml:"dfa"`
   States map[string]DFAState `toml:"state"`
 }
@@ -28,6 +31,7 @@ type DFA struct {
 var validTypes = map[string]bool{
   "s:":true, // string
   "r:":true, // regex
+  "f:":true, // lua func
 }
 
 func ParseDFAFromFile(path string) (*DFA, error) {
@@ -88,7 +92,31 @@ func ParseDFA(dfaToml string) (*DFA, error) {
       return nil,fmt.Errorf("No Match State %v does not exist.", dfa.Config.NoMatchState)
   }
 
+  dfa.L = lua.NewState()
+  dfa.L.OpenLibs()
+  dfa.L.DoFile("defaultlib.lua")
+
   return &dfa,nil
+}
+
+func (dfa *DFA) Close() {
+  if dfa.L != nil {
+    dfa.L.Close()
+  }
+}
+
+func (dfa *DFA) AddLua(file string) {
+  dfa.L.DoFile(file)
+}
+
+func (dfa *DFA) ApplyLua(funcname string, inputA string, inputB string) bool {
+  dfa.L.GetField(lua.LUA_GLOBALSINDEX, funcname)
+  dfa.L.PushString(inputA)
+  dfa.L.PushString(inputB)
+  dfa.L.Call(2,1)
+  rtn := dfa.L.ToBoolean(-1)
+  dfa.L.Pop(-1)
+  return rtn
 }
 
 func (dfa *DFA) ApplyDFA(inputs []string) (bool, error) {
@@ -112,6 +140,12 @@ func (dfa *DFA) ApplyDFA(inputs []string) (bool, error) {
           curState = trans[1]
           continue LoopTop
         }
+      case "f:":
+        split := strings.Split(trans[0],":")
+        if dfa.ApplyLua(split[1], split[2], input) {
+          curState = trans[1]
+          continue LoopTop
+        }
       }
     }
 
@@ -128,6 +162,12 @@ func (dfa *DFA) ApplyDFA(inputs []string) (bool, error) {
           return false, err
         }
         if matched {
+          curState = trans[1]
+          continue LoopTop
+        }
+      case "f:":
+        split := strings.Split(trans[0],":")
+        if dfa.ApplyLua(split[1], split[2], input) {
           curState = trans[1]
           continue LoopTop
         }
