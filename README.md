@@ -41,6 +41,7 @@ To build:
     go build
     
 To run:
+
     ./rundfa <toml_file> <input0> <input1> ... <inputN>
 
 
