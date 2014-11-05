@@ -11,15 +11,28 @@ States in the DFA are listed as:
       ... array of transitions which are...
       ["s:exact_string_match", "destination_state_name"],
       ["r:.*regex_match", "destination_state_name"],
+      ["f:lua_function:argument1", "destination_state_name"]
     ]
 
 
 The top level [dfa] object will include the name of the starting state and a few optional fields described below.
 Destination states must be valid names.  In a given state, the current input will be matched against
-each transition until the first match.  Matches can either be exact strings (prefixed with 's:') or
-regular expression matches (prefixed with 'r:').  If no match is made, the DFA will remain in the 
+each transition until the first match.  Matches can be exact strings (prefixed with 's:'), 
+regular expression matches (prefixed with 'r:'), or Lua function callse (prefixed with 'f:' and formatted as
+'f:function\_name:argument\_string).  If no match is made, the DFA will remain in the 
 current state by default.  When all inputs have been consumed, the accept value of the current state is 
 returned.
+
+Lua functions must match the signature:
+
+    function (str1, str2)
+      return bool
+    end
+
+These will be called with the argument embedded in the transition as str1 and the input as str2. The functions 
+are pulled from defaultlib.lua and any files passed to dfa.AddLua(). If the function returns true, the 
+transition is considered matched to the input and will be taken. Otherwise, the DFA will continue searching for
+transition matches.
 
     [dfa]
     start = "start_state_name"
