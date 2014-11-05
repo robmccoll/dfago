@@ -58,4 +58,9 @@ To run:
     ./rundfa <toml_file> <input0> <input1> ... <inputN>
 
 
-    
+A Note on Building
+------------------
+
+With the addition of Lua support (via [aarzilli's excellent golua](https://github.com/aarzilli/golua)), you will need 
+to have the Lua shared library installed to build.  See his page for additional details. Once linked, this is not required
+for running.
