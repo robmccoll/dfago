@@ -18,7 +18,7 @@ States in the DFA are listed as:
 The top level [dfa] object will include the name of the starting state and a few optional fields described below.
 Destination states must be valid names.  In a given state, the current input will be matched against
 each transition until the first match.  Matches can be exact strings (prefixed with 's:'), 
-regular expression matches (prefixed with 'r:'), or Lua function callse (prefixed with 'f:' and formatted as
+regular expression matches (prefixed with 'r:'), or Lua function calls (prefixed with 'f:' and formatted as
 'f:function\_name:argument\_string).  If no match is made, the DFA will remain in the 
 current state by default.  When all inputs have been consumed, the accept value of the current state is 
 returned.
